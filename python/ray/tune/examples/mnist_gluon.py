@@ -12,7 +12,6 @@ from mxnet import autograd as ag
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import transforms
 from gluoncv.model_zoo import get_model
-from gluoncv.data import transforms as gcv_transforms
 
 
 # Training settings
@@ -57,7 +56,7 @@ parser.add_argument('--momentum', default=0.9, type=float,
                     help='momentum')
 parser.add_argument('--weight_decay', '--wd', dest='wd', default=1e-4, type=float,
                     help='weight decay (default: 1e-4)')
-parser.add_argument('--expname', type=str, default='autoindoor')
+parser.add_argument('--expname', type=str, default='mnistgluon')
 parser.add_argument(
     '--num_samples',
     type=int,
@@ -94,7 +93,7 @@ def train_mnist(args, config, reporter):
         batch_size=batch_size, shuffle=False, num_workers=args.num_workers)
 
     # Load model architecture and Initialize the net with pretrained model
-    finetune_net = get_model(args.model, pretrained=False)
+    finetune_net = get_model(args.model, pretrained=True)
     with finetune_net.name_scope():
         finetune_net.fc = nn.Dense(args.classes)
     finetune_net.fc.initialize(init.Xavier(), ctx=ctx)
@@ -108,9 +107,6 @@ def train_mnist(args, config, reporter):
     metric = mx.metric.Accuracy()
 
     def train(epoch):
-        if epoch % args.lr_step == 0:
-            trainer.set_learning_rate(trainer.learning_rate*args.lr_factor)
-
         for i, batch in enumerate(train_data):
             data = gluon.utils.split_and_load(batch[0], ctx_list=ctx, batch_axis=0, even_split=False)
             label = gluon.utils.split_and_load(batch[1], ctx_list=ctx, batch_axis=0, even_split=False)
@@ -140,7 +136,6 @@ def train_mnist(args, config, reporter):
         _, test_acc = metric.get()
         test_loss /= len(test_data)
         reporter(mean_loss=test_loss, mean_accuracy=test_acc)
-        mx.nd.waitall()
 
     for epoch in range(1, args.epochs + 1):
         train(epoch)
