@@ -1,0 +1,52 @@
+import os, argparse, shutil
+from gluoncv.utils import makedirs
+from scipy.io import loadmat
+import numpy as np
+import cv2
+
+def parse_opts():
+    parser = argparse.ArgumentParser(description='Preparing Stanford Dogs 120 Dataset',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--data', type=str, required=True,
+                        help='directory for the original data folder')
+    opts = parser.parse_args()
+    return opts
+
+# Preparation
+opts = parse_opts()
+
+path = opts.data
+
+# Create directories
+src_path = os.path.join(path, 'Images')
+train_path = os.path.join(path, 'train')
+test_path = os.path.join(path, 'val')
+makedirs(train_path)
+makedirs(test_path)
+
+labels = sorted(os.listdir(src_path))
+
+for l in labels:
+    makedirs(os.path.join(train_path, l))
+    makedirs(os.path.join(test_path, l))
+
+    label_path = os.path.join(src_path, l)
+    img_list = os.listdir(label_path)
+
+    count = 0
+
+    for im in np.random.permutation(img_list):
+        img = cv2.imread(os.path.join(label_path, im))
+        try:
+            tmp = img.shape
+        except AttributeError as e:
+            print('train: ' + im)
+            continue
+        if count < 60:
+            cv2.imwrite(os.path.join(train_path, l, im),img)
+        elif count < 80:
+            cv2.imwrite(os.path.join(test_path, l, im),img)
+        else:
+            break
+        count += 1
+
