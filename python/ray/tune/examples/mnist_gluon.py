@@ -12,10 +12,10 @@ from mxnet import autograd as ag
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import transforms
 from gluoncv.model_zoo import get_model
-
+from gluoncv.data import transforms as gcv_transforms
 
 # Training settings
-parser = argparse.ArgumentParser(description='minc Example')
+parser = argparse.ArgumentParser(description='mnist Example')
 parser.add_argument('--data', type=str, default='',
                     help='directory for the prepared data folder')
 parser.add_argument('--model', required=True, type=str,
@@ -78,20 +78,51 @@ def train_mnist(args, config, reporter):
     ctx = [mx.gpu(i) for i in range(args.num_gpus)] if args.num_gpus > 0 else [mx.cpu()]
 
     # Define DataLoader
-    transform = transforms.Compose([
-        transforms.Resize(300),
-        transforms.RandomResizedCrop(224),
-        transforms.RandomBrightness(0.1),
+    #transform = transforms.Compose([
+    #    transforms.Resize(300),
+    #    transforms.RandomResizedCrop(224),
+    #    transforms.RandomBrightness(0.1),
+    #    transforms.ToTensor(),
+    #    transforms.Normalize(0, 1)])
+
+    #train_data = gluon.data.DataLoader(
+    #    mx.gluon.data.vision.MNIST(train=True).transform_first(transform),
+    #    batch_size=batch_size, shuffle=True, num_workers=args.num_workers)
+    #test_data = gluon.data.DataLoader(
+    #    mx.gluon.data.vision.MNIST(train=False).transform_first(transform),
+    #    batch_size=batch_size, shuffle=False, num_workers=args.num_workers)
+   
+    #def transformer(data, label):
+    #    data = data.reshape((-1,)).astype(np.float32)/255
+    #    return data, label
+
+   # train_data = gluon.data.DataLoader(
+   #     gluon.data.vision.MNIST('./data', train=True, transform=transformer),
+   #     batch_size=batch_size, shuffle=True, last_batch='discard')
+
+   # test_data = gluon.data.DataLoader(
+   #     gluon.data.vision.MNIST('./data', train=False, transform=transformer),
+   #     batch_size=batch_size, shuffle=False)
+    transform_train = transforms.Compose([
+        gcv_transforms.RandomCrop(32, pad=4),
+        transforms.RandomFlipLeftRight(),
         transforms.ToTensor(),
-        transforms.Normalize(0, 1)])
+        transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+    ])
+
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize([0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010])
+    ])
 
     train_data = gluon.data.DataLoader(
-        mx.gluon.data.vision.MNIST(train=True).transform_first(transform),
-        batch_size=batch_size, shuffle=True, num_workers=args.num_workers)
-    test_data = gluon.data.DataLoader(
-        mx.gluon.data.vision.MNIST(train=False).transform_first(transform),
-        batch_size=batch_size, shuffle=False, num_workers=args.num_workers)
+            gluon.data.vision.CIFAR10(train=True).transform_first(transform_train),
+            batch_size=batch_size, shuffle=True, last_batch='discard', num_workers=args.num_workers)
 
+    test_data = gluon.data.DataLoader(
+            gluon.data.vision.CIFAR10(train=False).transform_first(transform_test),
+            batch_size=batch_size, shuffle=False, num_workers=args.num_workers)
+    
     # Load model architecture and Initialize the net with pretrained model
     finetune_net = get_model(args.model, pretrained=True)
     with finetune_net.name_scope():
