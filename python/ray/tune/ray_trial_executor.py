@@ -312,8 +312,13 @@ class RayTrialExecutor(TrialExecutor):
             raise ValueError("Trial was not running.")
         self._running.pop(trial_future[0])
         with warn_if_slow("fetch_result"):
-            result = ray.get(trial_future[0])
-            ray.internal.free(trial_future[0], delete_creating_tasks=True)    
+            try:
+                result = ray.get(trial_future[0])
+                ray.internal.free(trial_future[0], delete_creating_tasks=True)
+            except Exception:
+                if trial.status == Trial.ERROR:
+                    self.trial_executor.stop_trial(
+                        trial, error=True)
 
         # For local mode
         if isinstance(result, _LocalWrapper):

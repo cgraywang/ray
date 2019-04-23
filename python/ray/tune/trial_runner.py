@@ -502,6 +502,9 @@ class TrialRunner(object):
                         trial.trial_id, error=True)
                     self.trial_executor.stop_trial(
                         trial, error=True, error_msg=error_msg)
+            elif trial.status == Trial.ERROR:
+                self.trial_executor.stop_trial(
+                    trial, error=True, error_msg=error_msg)
 
     def _checkpoint_trial_if_needed(self, trial):
         """Checkpoints trial based off trial.last_result."""
