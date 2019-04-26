@@ -161,6 +161,8 @@ parser.add_argument(
 parser.add_argument('--scheduler', type=str, default='fifo')
 parser.add_argument('--stop_accuracy', default=0.94, type=float,
                     help='stop_accuracy')
+parser.add_argument('--num_workers', default=4, type=int,
+                    help='number of preprocessing workers')
 args = parser.parse_args()
 
 
@@ -275,7 +277,7 @@ def train_indoor(args, config, reporter):
         # data loaders
         dataloader_train = gluon.data.DataLoader(
             dataset=data_train,
-            num_workers=1,
+            num_workers=args.num_workers,
             batch_sampler=batch_sampler,
             batchify_fn=batchify_fn)
         if task.task_name == 'MNLI':
@@ -284,10 +286,10 @@ def train_indoor(args, config, reporter):
 
             dataloader_dev_matched = mx.gluon.data.DataLoader(
                 data_dev_matched, batch_size=dev_batch_size,
-                num_workers=1, shuffle=False, batchify_fn=batchify_fn)
+                num_workers=args.num_workers, shuffle=False, batchify_fn=batchify_fn)
             dataloader_dev_mismatched = mx.gluon.data.DataLoader(
                 data_dev_mismatched, batch_size=dev_batch_size,
-                num_workers=1, shuffle=False, batchify_fn=batchify_fn)
+                num_workers=args.num_workers, shuffle=False, batchify_fn=batchify_fn)
             return dataloader_train, dataloader_dev_matched, \
                    dataloader_dev_mismatched, num_samples_train
         else:
@@ -295,7 +297,7 @@ def train_indoor(args, config, reporter):
             dataloader_dev = mx.gluon.data.DataLoader(
                 data_dev,
                 batch_size=dev_batch_size,
-                num_workers=1,
+                num_workers=args.num_workers,
                 shuffle=False,
                 batchify_fn=batchify_fn)
             return dataloader_train, dataloader_dev, num_samples_train
