@@ -82,11 +82,6 @@ parser.add_argument(
 parser.add_argument('--scheduler', type=str, default='fifo')
 args = parser.parse_args()
 
-# checkpoint_freq = 2,
-# checkpoint_at_end = True,
-# max_failures = args.epochs,
-# queue_trials = True,
-# with_server = False,
 
 def train_indoor(args, config, reporter):
     vars(args).update(config)

@@ -455,13 +455,13 @@ if __name__ == "__main__":
         **{
             "stop": {
                 "mean_accuracy": args.stop_accuracy,
-                "training_iteration": 1 if args.smoke_test else args.epochs
+                "training_iteration": args.epochs
             },
             "resources_per_trial": {
                 "cpu": int(args.num_workers),
                 "gpu": 1
             },
-            "num_samples": 1 if args.smoke_test else args.num_samples,
+            "num_samples": args.num_samples,
             "config": {
                 "lr": tune.sample_from(
                     lambda spec: np.power(10.0, np.random.uniform(-7, -3))),#0.1 log uniform
