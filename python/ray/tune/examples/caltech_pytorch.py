@@ -16,7 +16,17 @@ from torchvision import datasets, transforms, models
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
 parser.add_argument(
-    "--batch-size",
+    '--classes',
+    type=int,
+    default=257,
+    metavar='N',
+    help='number of outputs')
+parser.add_argument('--data', type=str, default='',
+                    help='directory for the prepared data folder')
+parser.add_argument('--model', required=True, type=str,
+                    help='name of the pretrained model from model zoo.')
+parser.add_argument(
+    "--batch_size",
     type=int,
     default=64,
     metavar="N",

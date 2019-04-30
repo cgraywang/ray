@@ -1,5 +1,5 @@
 import os, argparse, shutil
-from gluoncv.utils import makedirs
+#from gluoncv.utils import makedirs
 from scipy.io import loadmat
 import numpy as np
 import cv2
@@ -21,14 +21,14 @@ path = opts.data
 src_path = os.path.join(path, 'Images')
 train_path = os.path.join(path, 'train')
 test_path = os.path.join(path, 'val')
-makedirs(train_path)
-makedirs(test_path)
+os.makedirs(train_path)
+os.makedirs(test_path)
 
 labels = sorted(os.listdir(src_path))
 
 for l in labels:
-    makedirs(os.path.join(train_path, l))
-    makedirs(os.path.join(test_path, l))
+    os.makedirs(os.path.join(train_path, l))
+    os.makedirs(os.path.join(test_path, l))
 
     label_path = os.path.join(src_path, l)
     img_list = os.listdir(label_path)
