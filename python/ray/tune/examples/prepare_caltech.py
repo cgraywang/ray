@@ -1,11 +1,9 @@
-import os, argparse, shutil
-#from gluoncv.utils import makedirs
-from scipy.io import loadmat
+import os, argparse
 import numpy as np
 import cv2
 
 def parse_opts():
-    parser = argparse.ArgumentParser(description='Preparing Stanford Dogs 120 Dataset',
+    parser = argparse.ArgumentParser(description='Preparing Caltech-256 Dataset',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data', type=str, required=True,
                         help='directory for the original data folder')

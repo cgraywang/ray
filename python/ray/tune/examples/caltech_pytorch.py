@@ -1,5 +1,7 @@
-# Original Code here:
-# https://github.com/pytorch/examples/blob/master/mnist/main.py
+# Run the following to prepare Caltech-256 dataset first:
+# $ sh download_caltech.sh
+# $ python prepare_caltech.py --data ~/data/caltech/
+
 from __future__ import print_function
 
 import argparse
@@ -10,33 +12,32 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 from torchvision import datasets, transforms, models
 
 # Training settings
-parser = argparse.ArgumentParser(description="PyTorch MNIST Example")
+parser = argparse.ArgumentParser(description="PyTorch Caltech-256 Example")
 parser.add_argument(
     '--classes',
     type=int,
     default=257,
     metavar='N',
     help='number of outputs')
-parser.add_argument('--data', type=str, default='',
-                    help='directory for the prepared data folder')
-parser.add_argument('--model', required=True, type=str,
-                    help='name of the pretrained model from model zoo.')
+parser.add_argument(
+    '--data',
+    type=str,
+    default='',
+    help='directory for the prepared data folder')
+parser.add_argument(
+    '--model',
+    required=True,
+    type=str,
+    help='name of the pretrained model from model zoo.')
 parser.add_argument(
     "--batch_size",
     type=int,
     default=64,
     metavar="N",
     help="input batch size for training (default: 64)")
-parser.add_argument(
-    "--test-batch-size",
-    type=int,
-    default=1000,
-    metavar="N",
-    help="input batch size for testing (default: 1000)")
 parser.add_argument(
     "--epochs",
     type=int,
@@ -152,11 +153,11 @@ def train_caltech(args, config, reporter):
         normalize
     ])
     train_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.ImageFolder(train_path, transform=transform_train),
+        datasets.ImageFolder(train_path, transform=transform_train),
         batch_size=batch_size, shuffle=True, **kwargs)
 
     test_loader = torch.utils.data.DataLoader(
-        torchvision.datasets.ImageFolder(test_path, transform=transform_test),
+        datasets.ImageFolder(test_path, transform=transform_test),
         batch_size=batch_size, shuffle=False, **kwargs)
 
     # Load model architecture and Initialize the net with pretrained model
@@ -165,6 +166,8 @@ def train_caltech(args, config, reporter):
         num_ftrs = finetune_net.fc.in_features
         finetune_net.fc = nn.Linear(num_ftrs, args.classes)
         finetune_net = finetune_net.to(device)
+    else:
+        raise NotImplementedError
 
     # Define optimizer
     optimizer = optim.SGD(
@@ -209,7 +212,7 @@ if __name__ == "__main__":
 
     import ray
     from ray import tune
-    from ray.tune.schedulers import AsyncHyperBandScheduler, FIFOScheduler, HyperBandScheduler
+    from ray.tune.schedulers import AsyncHyperBandScheduler, FIFOScheduler
 
     ray.init()
     if args.scheduler == 'fifo':
@@ -220,11 +223,6 @@ if __name__ == "__main__":
             reward_attr="neg_mean_loss",
             max_t=400,
             grace_period=60)
-    elif args.scheduler == 'hyperband':
-        sched = HyperBandScheduler(
-            time_attr="training_iteration",
-            reward_attr="neg_mean_loss",
-            max_t=400)
     else:
         raise NotImplementedError
     tune.register_trainable(
@@ -253,8 +251,8 @@ if __name__ == "__main__":
             "num_samples": 1 if args.smoke_test else args.num_samples,
             "config": {
                 "lr": tune.sample_from(
-                    lambda spec: np.power(10.0, np.random.uniform(-5, -2))),  # 0.1 log uniform
+                    lambda spec: np.power(10.0, np.random.uniform(-5, -2))),
                 "momentum": tune.sample_from(
-                    lambda spec: np.random.uniform(0.85, 0.95)),  # 0.9
+                    lambda spec: np.random.uniform(0.85, 0.95)),
             }
         })
